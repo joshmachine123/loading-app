@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Loading App</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3348;
+    --accent: #4f8ef7;
+    --accent2: #7c3aed;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --text: #f0f2ff;
+    --text2: #8b92b4;
+    --text3: #555e85;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .header-user {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* MAIN CONTENT */
+  .main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* SCREENS */
+  .screen { display: none; flex-direction: column; gap: 16px; }
+  .screen.active { display: flex; }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  /* SELECT */
+  .select-wrapper { position: relative; }
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 16px;
+    padding: 14px 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+  }
+  select:focus { border-color: var(--accent); }
+  .select-arrow {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text2); pointer-events: none; font-size: 12px;
+  }
+
+  /* BTN */
+  .btn {
+    width: 100%; padding: 16px;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .btn:active { transform: scale(0.97); opacity: 0.9; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-ghost {
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* SCAN INPUT */
+  .scan-area {
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .scan-area.focused { border-color: var(--accent); border-style: solid; }
+  .scan-icon { font-size: 40px; margin-bottom: 10px; }
+  .scan-hint { font-size: 13px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+
+  .input-row { display: flex; gap: 8px; }
+  input[type="text"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    letter-spacing: 0.5px;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--text3); font-family: -apple-system, sans-serif; letter-spacing: 0; }
+
+  .scan-btn {
+    background: var(--accent);
+    border: none; border-radius: var(--radius-sm);
+    color: #fff; font-size: 20px;
+    padding: 12px 16px;
+    cursor: pointer; transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  /* RESULT CARD */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .result-header {
+    background: linear-gradient(135deg, var(--accent)22, var(--accent2)22);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .result-crate {
+    font-size: 15px; font-weight: 700;
+    font-family: 'SF Mono', monospace; letter-spacing: 0.5px;
+  }
+  .result-badge {
+    margin-left: auto;
+    background: var(--accent)33;
+    color: var(--accent);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .result-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  .info-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .info-label { font-size: 12px; color: var(--text2); margin-bottom: 3px; }
+  .info-value { font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .info-value.big {
+    font-size: 28px; font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+  .info-block { flex: 1; }
+
+  .divider { height: 1px; background: var(--border); }
+
+  /* LOADING SEQ HIGHLIGHT */
+  .seq-display {
+    background: linear-gradient(135deg, var(--accent)15, var(--accent2)15);
+    border: 1px solid var(--accent)44;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+  }
+  .seq-label { font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .seq-number { font-size: 48px; font-weight: 900; color: var(--accent); letter-spacing: -2px; line-height: 1; }
+
+  /* TRIP SELECTOR */
+  .trip-option {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .trip-option:active { background: var(--border); }
+  .trip-option-info { flex: 1; }
+  .trip-option-trip { font-size: 13px; font-weight: 600; }
+  .trip-option-retailer { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .trip-option-arrow { color: var(--text3); }
+
+  /* STATUS MESSAGES */
+  .status-msg {
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .status-msg.error { background: var(--error)20; border: 1px solid var(--error)44; color: var(--error); }
+  .status-msg.success { background: var(--success)20; border: 1px solid var(--success)44; color: var(--success); }
+  .status-msg.info { background: var(--accent)15; border: 1px solid var(--accent)33; color: var(--accent); }
+
+  /* SPINNER */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-row { display: flex; align-items: center; gap: 12px; padding: 16px; color: var(--text2); font-size: 14px; }
+
+  /* CONFIRMED SCREEN */
+  .confirm-screen { text-align: center; padding: 32px 20px; }
+  .confirm-icon { font-size: 64px; margin-bottom: 16px; }
+  .confirm-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .confirm-sub { font-size: 14px; color: var(--text2); margin-bottom: 24px; line-height: 1.5; }
+
+  /* HISTORY BADGE */
+  .history-count {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--text2);
+  }
+  .history-count strong { color: var(--text); }
+
+  /* UTILITY */
+  .hidden { display: none !important; }
+  .mt-8 { margin-top: 8px; }
+  .text-center { text-align: center; }
+  .text-sm { font-size: 13px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">📦</div>
+  <div>
+    <div class="header-title">Loading App</div>
+    <div class="header-sub" id="headerSub">Select loader to begin</div>
+  </div>
+  <div class="header-user hidden" id="headerUser" onclick="resetUser()">
+    <span id="headerUserName">—</span> ✕
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SCREEN 1: SELECT USER -->
+  <div class="screen active" id="screenUser">
+    <div class="card">
+      <div class="card-label">Who are you?</div>
+      <div class="select-wrapper">
+        <select id="userSelect">
+          <option value="">Loading users...</option>
+        </select>
+        <div class="select-arrow">▼</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btnSelectUser" onclick="selectUser()" disabled>
+      Start Loading →
+    </button>
+  </div>
+
+  <!-- SCREEN 2: SCAN -->
+  <div class="screen" id="screenScan">
+    <div class="card">
+      <div class="card-label">Scan or enter crate barcode</div>
+      <div class="scan-area" id="scanArea">
+        <div class="scan-icon">⬛</div>
+        <div class="scan-hint">Point your Bluetooth scanner at a crate barcode, or type the code below</div>
+        <div class="input-row">
+          <input type="text" id="barcodeInput"
+            placeholder="e.g. SMRALAV0219"
+            autocomplete="off" autocorrect="off"
+            autocapitalize="characters" spellcheck="false"
+            oninput="onBarcodeInput()"
+            onkeydown="onBarcodeKeydown(event)"
+            onfocus="document.getElementById('scanArea').classList.add('focused')"
+            onblur="document.getElementById('scanArea').classList.remove('focused')"
+          />
+          <button class="scan-btn" onclick="triggerScan()" title="Look up">🔍</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="scanStatus" class="hidden"></div>
+    <div id="scanResult" class="hidden"></div>
+    <div id="tripSelector" class="hidden"></div>
+    <div id="confirmSection" class="hidden"></div>
+
+    <div class="history-count">
+      <span>📋</span>
+      <span>Loaded this session: <strong id="sessionCount">0</strong> crates</span>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: CONFIRMED -->
+  <div class="screen" id="screenConfirmed">
+    <div class="confirm-screen">
+      <div class="confirm-icon">✅</div>
+      <div class="confirm-title">Crate Loaded!</div>
+      <div class="confirm-sub" id="confirmSummary"></div>
+      <button class="btn btn-primary" onclick="scanNext()">Scan Next Crate →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzlq2ceF5OIjq6e0q2oWplujpMbxVkLctvdOpSwmyY6gIzSETKsWwWLKaZcMWwEryjh0Q/exec";
+
+let currentUser = null;
+let currentCrateInfo = null;
+let sessionCount = 0;
+let scanDebounce = null;
+
+// ─── INIT ────────────────────────────────────────────
+async function init() {
+  await loadUsers();
+  document.getElementById('userSelect').addEventListener('change', () => {
+    document.getElementById('btnSelectUser').disabled = !document.getElementById('userSelect').value;
+  });
+}
+
+// ─── LOAD USERS ──────────────────────────────────────
+async function loadUsers() {
+  try {
+    const res = await fetch(`${API_URL}?action=get_users`);
+    const data = await res.json();
+    const select = document.getElementById('userSelect');
+    select.innerHTML = '<option value="">— Select your name —</option>';
+    (data.users || []).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.user_id;
+      opt.textContent = u.name;
+      select.appendChild(opt);
+    });
+  } catch(e) {
+    document.getElementById('userSelect').innerHTML = '<option value="">Error loading users — check connection</option>';
+  }
+}
+
+// ─── SELECT USER ─────────────────────────────────────
+function selectUser() {
+  const select = document.getElementById('userSelect');
+  const userId = select.value;
+  const userName = select.options[select.selectedIndex].text;
+  if (!userId) return;
+
+  currentUser = { id: userId, name: userName };
+  document.getElementById('headerUserName').textContent = userName;
+  document.getElementById('headerUser').classList.remove('hidden');
+  document.getElementById('headerSub').textContent = 'Scan a crate to load';
+
+  showScreen('screenScan');
+  setTimeout(() => document.getElementById('barcodeInput').focus(), 300);
+}
+
+// ─── RESET USER ──────────────────────────────────────
+function resetUser() {
+  currentUser = null;
+  currentCrateInfo = null;
+  document.getElementById('headerUser').classList.add('hidden');
+  document.getElementById('headerSub').textContent = 'Select loader to begin';
+  clearScanState();
+  showScreen('screenUser');
+}
+
+// ─── BARCODE INPUT ───────────────────────────────────
+function onBarcodeInput() {
+  // Auto-trigger after 300ms pause (for Bluetooth scanner which types fast)
+  clearTimeout(scanDebounce);
+  const val = document.getElementById('barcodeInput').value.trim();
+  if (val.length >= 6) {
+    scanDebounce = setTimeout(() => triggerScan(), 300);
+  }
+}
+
+function onBarcodeKeydown(e) {
+  if (e.key === 'Enter') {
+    clearTimeout(scanDebounce);
+    triggerScan();
+  }
+}
+
+// ─── TRIGGER SCAN ────────────────────────────────────
+async function triggerScan() {
+  const code = document.getElementById('barcodeInput').value.trim().toUpperCase();
+  if (!code) return;
+
+  clearScanResult();
+  showStatus('loading', 'Looking up crate...');
+
+  try {
+    const res = await fetch(`${API_URL}?action=scan_crate&crate_code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      showStatus('error', `❌ ${data.error}`);
+      return;
+    }
+
+    if (data.multiple_trips) {
+      showStatus('info', `🔀 This crate is assigned to ${data.trips.length} trips — select one:`);
+      showTripSelector(data.trips, code);
+      return;
+    }
+
+    clearStatus();
+    showResult(data);
+
+  } catch(e) {
+    showStatus('error', '❌ Connection error. Check your internet and try again.');
+  }
+}
+
+// ─── SHOW TRIP SELECTOR ──────────────────────────────
+function showTripSelector(trips, crateCode) {
+  const el = document.getElementById('tripSelector');
+  el.classList.remove('hidden');
+  el.innerHTML = trips.map(t => `
+    <div class="trip-option" onclick="selectTrip('${crateCode}', '${t.trip_code}', '${t.retailer_code}')">
+      <div class="trip-option-info">
+        <div class="trip-option-trip">${t.trip_code}</div>
+        <div class="trip-option-retailer">${t.retailer_name} · Priority ${t.priority}</div>
+      </div>
+      <div class="trip-option-arrow">›</div>
+    </div>
+  `).join('');
+}
+
+async function selectTrip(crateCode, tripCode, retailerCode) {
+  document.getElementById('tripSelector').classList.add('hidden');
+  clearStatus();
+  showStatus('loading', 'Loading trip details...');
+
+  try {
+    const res = await fetch(`${API_URL}?action=scan_crate&crate_code=${encodeURIComponent(crateCode)}&trip_code=${encodeURIComponent(tripCode)}&retailer_code=${encodeURIComponent(retailerCode)}`);
+    const data = await res.json();
+    if (data.error) { showStatus('error', `❌ ${data.error}`); return; }
+    clearStatus();
+    showResult(data);
+  } catch(e) {
+    showStatus('error', '❌ Connection error.');
+  }
+}
+
+// ─── SHOW RESULT ─────────────────────────────────────
+function showResult(data) {
+  currentCrateInfo = data;
+
+  const el = document.getElementById('scanResult');
+  el.classList.remove('hidden');
+  el.innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <span style="font-size:18px">📦</span>
+        <span class="result-crate">${data.crate_code}</span>
+        <span class="result-badge">READY TO LOAD</span>
+      </div>
+      <div class="result-body">
+        <div class="seq-display">
+          <div class="seq-label">Loading Sequence</div>
+          <div class="seq-number">${data.loading_seq}</div>
+        </div>
+        <div class="divider"></div>
+        <div class="info-row">
+          <div class="info-block">
+            <div class="info-label">Trip</div>
+            <div class="info-value" style="font-size:13px">${data.trip_code}</div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">Priority</div>
+            <div class="info-value">${data.priority || '—'}</div>
+          </div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Retailer</div>
+          <div class="info-value">${data.retailer_name}</div>
+          <div class="text-sm mt-8">${data.retailer_code}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Show confirm button
+  const conf = document.getElementById('confirmSection');
+  conf.classList.remove('hidden');
+  conf.innerHTML = `
+    <button class="btn btn-success" onclick="confirmLoad()">
+      ✓ Confirm Loaded
+    </button>
+    <button class="btn btn-ghost mt-8" onclick="cancelScan()">
+      ✕ Cancel
+    </button>
+  `;
+}
+
+// ─── CONFIRM LOAD ────────────────────────────────────
+async function confirmLoad() {
+  if (!currentCrateInfo || !currentUser) return;
+
+  const conf = document.getElementById('confirmSection');
+  conf.innerHTML = `<div class="loading-row"><div class="spinner"></div> Confirming...</div>`;
+
+  try {
+    const params = new URLSearchParams({
+      action: 'confirm_load',
+      crate_code: currentCrateInfo.crate_code,
+      trip_code: currentCrateInfo.trip_code,
+      retailer_code: currentCrateInfo.retailer_code,
+      user_id: currentUser.id
+    });
+
+    const res = await fetch(`${API_URL}?${params}`);
+    const data = await res.json();
+
+    if (data.error) {
+      conf.innerHTML = `
+        <div class="status-msg error">❌ ${data.error}</div>
+        <button class="btn btn-ghost mt-8" onclick="cancelScan()">Go back</button>
+      `;
+      return;
+    }
+
+    sessionCount++;
+    document.getElementById('sessionCount').textContent = sessionCount;
+
+    document.getElementById('confirmSummary').innerHTML =
+      `<strong>${data.crate_code}</strong> confirmed for<br>
+       <strong>${data.retailer_name}</strong><br>
+       Trip: ${data.trip_code}<br>
+       Loading Sequence: <strong>${data.loading_seq}</strong>`;
+
+    showScreen('screenConfirmed');
+
+  } catch(e) {
+    conf.innerHTML = `
+      <div class="status-msg error">❌ Connection error. Try again.</div>
+      <button class="btn btn-success mt-8" onclick="confirmLoad()">Retry</button>
+    `;
+  }
+}
+
+// ─── SCAN NEXT ───────────────────────────────────────
+function scanNext() {
+  currentCrateInfo = null;
+  clearScanState();
+  showScreen('screenScan');
+  setTimeout(() => {
+    document.getElementById('barcodeInput').value = '';
+    document.getElementById('barcodeInput').focus();
+  }, 200);
+}
+
+// ─── CANCEL SCAN ─────────────────────────────────────
+function cancelScan() {
+  clearScanState();
+  document.getElementById('barcodeInput').value = '';
+  document.getElementById('barcodeInput').focus();
+}
+
+// ─── HELPERS ─────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('scanStatus');
+  if (type === 'loading') {
+    el.innerHTML = `<div class="loading-row"><div class="spinner"></div>${msg}</div>`;
+    el.className = 'card';
+  } else {
+    el.innerHTML = `<div class="status-msg ${type}">${msg}</div>`;
+    el.className = '';
+  }
+  el.classList.remove('hidden');
+}
+
+function clearStatus() {
+  const el = document.getElementById('scanStatus');
+  el.classList.add('hidden');
+  el.innerHTML = '';
+}
+
+function clearScanResult() {
+  document.getElementById('scanResult').classList.add('hidden');
+  document.getElementById('scanResult').innerHTML = '';
+  document.getElementById('tripSelector').classList.add('hidden');
+  document.getElementById('tripSelector').innerHTML = '';
+  document.getElementById('confirmSection').classList.add('hidden');
+  document.getElementById('confirmSection').innerHTML = '';
+}
+
+function clearScanState() {
+  clearStatus();
+  clearScanResult();
+  currentCrateInfo = null;
+}
+
+// ─── START ───────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
